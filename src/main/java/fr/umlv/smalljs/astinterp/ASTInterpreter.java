@@ -32,6 +32,7 @@ public final class ASTInterpreter {
                 }
                 yield UNDEFINED;
             }
+
             case Literal<?>(Object value, int lineNumber) -> value;
 
             case FunCall(Expr qualifier, List<Expr> args, int lineNumber) -> {
@@ -43,11 +44,18 @@ public final class ASTInterpreter {
                 var values = args.stream().map(arg -> visit(arg, env)).toArray();
                 yield jsObject.invoke(UNDEFINED, values);
             }
+
             case LocalVarAccess(String name, int lineNumber) -> env.lookup(name);
 
             case LocalVarAssignment(String name, Expr expr, boolean declaration, int lineNumber) -> {
-                throw new UnsupportedOperationException("TODO LocalVarAssignment");
+                if (declaration && env.lookup(name) != UNDEFINED) {
+                    throw new Failure("Variable " + name + " already defined at line " + lineNumber);
+                }
+                var value = visit(expr, env);
+                env.register(name, value);
+                yield value;
             }
+
             case Fun(Optional<String> optName, List<String> parameters, Block body, int lineNumber) -> {
                 throw new UnsupportedOperationException("TODO Fun");
                 //var functionName = optName.orElse("lambda");

@@ -57,7 +57,6 @@ public class ASTInterpreterTests {
     assertEquals("1\n", execute("print(3 / 2)\n"));
   }
 
-  /*
   @Tag("Q7") @Test
   public void printPrint3() {
     assertEquals("3\nundefined\n", execute("print(print(3))\n"));
@@ -95,6 +94,7 @@ public class ASTInterpreterTests {
             """));
   }
 
+  /*
   @Tag("Q9") @Test
   public void printAVariableDefinedAfter() {
     assertEquals("undefined\n", execute("print(a);\nvar a = 2;\n"));
