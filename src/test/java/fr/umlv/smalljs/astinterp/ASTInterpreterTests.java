@@ -25,7 +25,7 @@ public class ASTInterpreterTests {
     return outStream.toString(UTF_8).replace("\r\n", "\n");
   }
 
-  /*
+
   @Tag("Q2") @Test
   public void helloString() {
     assertEquals("", execute("\"hello\"\n"));
@@ -43,6 +43,7 @@ public class ASTInterpreterTests {
     assertEquals("3\n", execute("print(3)\n"));
   }
 
+
   @Tag("Q5") @Test
   public void printPrint() {
     assertFalse(execute("print(print)\n").isEmpty());
@@ -56,6 +57,7 @@ public class ASTInterpreterTests {
     assertEquals("1\n", execute("print(3 / 2)\n"));
   }
 
+  /*
   @Tag("Q7") @Test
   public void printPrint3() {
     assertEquals("3\nundefined\n", execute("print(print(3))\n"));
