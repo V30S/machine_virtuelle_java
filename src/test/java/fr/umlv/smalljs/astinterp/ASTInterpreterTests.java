@@ -94,7 +94,7 @@ public class ASTInterpreterTests {
             """));
   }
 
-  /*
+
   @Tag("Q9") @Test
   public void printAVariableDefinedAfter() {
     assertEquals("undefined\n", execute("print(a);\nvar a = 2;\n"));
@@ -234,7 +234,7 @@ public class ASTInterpreterTests {
             print(f(7));
             """));
   }
-  
+  /*
   @Tag("Q12") @Test
   public void callFibo() {
     assertEquals("21\n", execute("""

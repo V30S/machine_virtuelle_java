@@ -5,6 +5,7 @@ import fr.umlv.smalljs.ast.Expr.*;
 import fr.umlv.smalljs.ast.Script;
 import fr.umlv.smalljs.rt.Failure;
 import fr.umlv.smalljs.rt.JSObject;
+import fr.umlv.smalljs.rt.JSObject.Invoker;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -57,27 +58,59 @@ public final class ASTInterpreter {
             }
 
             case Fun(Optional<String> optName, List<String> parameters, Block body, int lineNumber) -> {
-                throw new UnsupportedOperationException("TODO Fun");
-                //var functionName = optName.orElse("lambda");
-                //Invoker invoker = new Invoker() {
-                //  @Override
-                //  public Object invoke(JSObject self, Object receiver, Object... args) {
-                //    // check the arguments length
-                //    // create a new environment
-                //    // add this and all the parameters
-                //    // visit the body
-                //  }
-                //};
+
+                Invoker invoker = new Invoker() {
+                    @Override
+                    public Object invoke(Object receiver, Object... args) {
+                        // check the arguments length
+                        if (args.length != parameters.size()) {
+                            throw new Failure("Wrong number of arguments");
+                        }
+
+                        // create a new environment
+                        var newEnv = JSObject.newEnv(env);
+
+                        // add this and all the parameters
+                        newEnv.register("this", receiver);
+
+                        for (int i = 0; i < args.length; i++) {
+                            var parameter = parameters.get(i);
+                            var arg = args[i];
+                            newEnv.register(parameter, arg);
+                        }
+
+                        // visit the body
+                        try {
+                            return visit(body, newEnv);
+                        } catch (ReturnError returnError) {
+                            return returnError.getValue();
+                        }
+                    }
+                };
+
                 // create the JS function with the invoker
+                var function = JSObject.newFunction(optName.orElse("lambda"), invoker);
+
                 // register it if necessary
-                // yield the function
+                optName.ifPresent(name -> {
+                    env.register(name, function);
+                });
+
+                yield function;
             }
-            case Return(Expr expr, int lineNumber) -> {
-                throw new UnsupportedOperationException("TODO Return");
-            }
+
+            case Return(Expr expr, int lineNumber) -> throw new ReturnError(visit(expr, env));
+
             case If(Expr condition, Block trueBlock, Block falseBlock, int lineNumber) -> {
-                throw new UnsupportedOperationException("TODO If");
+                var valueCondition = visit(condition, env);
+                if (valueCondition instanceof Integer i && i != 0) {
+                    visit(trueBlock, env);
+                } else {
+                    visit(falseBlock, env);
+                }
+                yield UNDEFINED;
             }
+
             case New(Map<String, Expr> initMap, int lineNumber) -> {
                 throw new UnsupportedOperationException("TODO New");
             }
