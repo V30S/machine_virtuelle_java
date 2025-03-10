@@ -214,9 +214,9 @@ public final class ByteCodeRewriter {
                 // if it does not exist throw a Failure
                 if (slotOrUndefined == JSObject.UNDEFINED) {
                     throw new Failure("Variable " + name + " not found");
-                }
-                // otherwise STORE the top of the stack at the local variable slot
-                mv.visitVarInsn(ASTORE, (int) slotOrUndefined);
+                } else
+                    // otherwise STORE the top of the stack at the local variable slot
+                    mv.visitVarInsn(ASTORE, (int) slotOrUndefined);
             }
             case LocalVarAccess(String name, int lineNumber) -> {
                 // lookup to find if it's a local var access or a lookup access
@@ -252,11 +252,20 @@ public final class ByteCodeRewriter {
                 mv.visitInsn(ARETURN);
             }
             case If(Expr condition, Block trueBlock, Block falseBlock, int lineNumber) -> {
-                throw new UnsupportedOperationException("TODO If");
                 // visit the condition
+                visit(condition, env, mv, dictionary);
                 // generate an invokedynamic to transform an Object to a boolean using BSM_TRUTH
+                mv.visitInvokeDynamicInsn("truth", "(Ljava/lang/Object;)Z", BSM_TRUTH);
+                var elseLabel = new Label();
+                mv.visitJumpInsn(IFEQ, elseLabel);
                 // visit the true block
+                visit(trueBlock, env, mv, dictionary);
+                var endLabel = new Label();
+                mv.visitJumpInsn(GOTO, endLabel);
                 // visit the false block
+                mv.visitLabel(elseLabel);
+                visit(falseBlock, env, mv, dictionary);
+                mv.visitLabel(endLabel);
             }
             case New(Map<String, Expr> initMap, int lineNumber) -> {
                 throw new UnsupportedOperationException("TODO New");

@@ -92,9 +92,10 @@ public final class RT {
     }
 
     public static CallSite bsm_truth(Lookup lookup, String name, MethodType type) {
-        throw new UnsupportedOperationException("TODO bsm_truth");
         // get the TRUTH method handle
+        var mh = TRUTH;
         // create a constant callsite
+        return new ConstantCallSite(mh);
     }
 
     public static CallSite bsm_get(Lookup lookup, String name, MethodType type, String fieldName) {
