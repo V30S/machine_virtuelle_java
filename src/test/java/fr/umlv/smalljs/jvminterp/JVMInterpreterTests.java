@@ -152,7 +152,7 @@ public class JVMInterpreterTests {
             print(undef());
             """));
   }
-/*
+
   @Tag("Q11") @Test
   public void printWithAnIf() {
     assertEquals("false\n", execute("""
@@ -410,5 +410,4 @@ public class JVMInterpreterTests {
                 print(fun(object2));
                 """));
   }
-  */
 }

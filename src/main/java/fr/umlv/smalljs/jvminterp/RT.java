@@ -126,4 +126,44 @@ public final class RT {
         //var target = foldArguments(invoker(type), combiner);
         //return new ConstantCallSite(target);
     }
+
+    private static class InliningCache extends MutableCallSite {
+        private static final MethodHandle SLOW_PATH;
+        private static final MethodHandle TEST;
+
+        static {
+            var lookup = MethodHandles.lookup();
+            try {
+                SLOW_PATH = lookup.findVirtual(InliningCache.class, "slowPath", methodType(MethodHandle.class, Object.class, Object.class));
+                TEST = lookup.findStatic(InliningCache.class, "test", methodType(boolean.class, Object.class, Object.class));
+            } catch (NoSuchMethodException | IllegalAccessException e) {
+                throw new AssertionError(e);
+            }
+        }
+
+        public InliningCache(MethodType type) {
+            super(type);
+            setTarget(MethodHandles.foldArguments(MethodHandles.exactInvoker(type), SLOW_PATH.bindTo(this)));
+        }
+
+        private static boolean test(Object qualifier, Object previousQualifier) {
+            return qualifier == previousQualifier;
+        }
+
+        private MethodHandle slowPath(Object qualifier, Object receiver) {
+            var jsObject = (JSObject) qualifier;
+            var mh = jsObject.getMethodHandle();
+            var varargs = mh.isVarargsCollector();
+
+            mh = MethodHandles.dropArguments(mh, 0, Object.class);
+            mh = mh.withVarargs(varargs);
+            mh = mh.asType(type());
+
+            var test = MethodHandles.insertArguments(TEST, 1, qualifier);
+            var guard = MethodHandles.guardWithTest(test, mh, getTarget());
+            setTarget(guard);
+
+            return mh;
+        }
+    }
 }

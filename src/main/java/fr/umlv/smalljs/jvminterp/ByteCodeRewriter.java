@@ -1,7 +1,5 @@
 package fr.umlv.smalljs.jvminterp;
 
-import static fr.umlv.smalljs.stackinterp.Instructions.DUP;
-import static fr.umlv.smalljs.stackinterp.Instructions.POP;
 import static java.lang.invoke.MethodType.genericMethodType;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.objectweb.asm.Opcodes.*;
@@ -148,6 +146,7 @@ public final class ByteCodeRewriter {
                 // do nothing
             }
         }
+        ;
     }
 
     private static Handle bsm(String name, Class<?> returnType, Class<?>... parameterTypes) {
@@ -160,7 +159,7 @@ public final class ByteCodeRewriter {
         switch (expression) {
             case Block(List<Expr> instrs, int lineNumber) -> {
                 // for each expression
-                for (Expr instr : instrs) {
+                for (var instr : instrs) {
                     // generate line numbers
                     var label = new Label();
                     mv.visitLineNumber(instr.lineNumber(), label);
@@ -198,12 +197,11 @@ public final class ByteCodeRewriter {
                 // load "this"
                 mv.visitLdcInsn(new ConstantDynamic("undefined", "Ljava/lang/Object;", BSM_UNDEFINED));
                 // for each argument, visit it
-                for (Expr arg : args) {
+                for (var arg : args) {
                     visit(arg, env, mv, dictionary);
                 }
-                // the name of the invokedynamic is either "builtincall" or "funcall"
-                // generate an invokedynamic with the right name
-                var desc = "(" + "Ljava/lang/Object;".repeat(args.size() + 2) + ")Ljava/lang/Object;";
+                // generate an invokedynamic with the name "funcall"
+                var desc = "(" + "Ljava/lang/Object;".repeat(2 + args.size()) + ")Ljava/lang/Object;";
                 mv.visitInvokeDynamicInsn("funcall", desc, BSM_FUNCALL);
             }
             case LocalVarAssignment(String name, Expr expr, boolean declaration, int lineNumber) -> {
@@ -213,7 +211,7 @@ public final class ByteCodeRewriter {
                 var slotOrUndefined = env.lookup(name);
                 // if it does not exist throw a Failure
                 if (slotOrUndefined == JSObject.UNDEFINED) {
-                    throw new Failure("Variable " + name + " not found");
+                    throw new Failure("unknown local variable: " + name);
                 } else
                     // otherwise STORE the top of the stack at the local variable slot
                     mv.visitVarInsn(ASTORE, (int) slotOrUndefined);
@@ -225,11 +223,9 @@ public final class ByteCodeRewriter {
                 if (slotOrUndefined == JSObject.UNDEFINED) {
                     //  generate an invokedynamic doing a lookup
                     mv.visitInvokeDynamicInsn("lookup", "()Ljava/lang/Object;", BSM_LOOKUP, name);
-
-                }
-                // otherwise
-                else {
-                    // load the local variable at the slot
+                } else {
+                    // otherwise
+                    //  load the local variable at the slot
                     mv.visitVarInsn(ALOAD, (int) slotOrUndefined);
                 }
             }
