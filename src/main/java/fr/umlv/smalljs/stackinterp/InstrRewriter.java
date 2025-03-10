@@ -241,10 +241,10 @@ public final class InstrRewriter {
 					// register the field name with the right slot
 				  	clazz.register(fieldName, clazz);
 					// visit the initialization expression
-				  	visit(...);
+				  	visit(expr, env, buffer, dict);
 				});
 				// emit a NEW with the class
-				buffer.emit(...).emit(...);
+				buffer.emit(NEW).emit(encodeDictObject(clazz, dict));
 			}
 			case FieldAccess(Expr receiver, String name, int lineNumber) -> {
 				throw new UnsupportedOperationException("TODO FieldAccess");
