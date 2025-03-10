@@ -4,13 +4,7 @@ import static fr.umlv.smalljs.stackinterp.Instructions.DUP;
 import static fr.umlv.smalljs.stackinterp.Instructions.POP;
 import static java.lang.invoke.MethodType.genericMethodType;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
-import static org.objectweb.asm.Opcodes.ACC_SUPER;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.ASTORE;
-import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.V21;
+import static org.objectweb.asm.Opcodes.*;
 
 import java.io.PrintWriter;
 import java.lang.invoke.CallSite;
@@ -236,7 +230,7 @@ public final class ByteCodeRewriter {
                 // otherwise
                 else {
                     // load the local variable at the slot
-                    mv.visitVarInsn(ASTORE, (int) slotOrUndefined);
+                    mv.visitVarInsn(ALOAD, (int) slotOrUndefined);
                 }
             }
             case Fun fun -> {
