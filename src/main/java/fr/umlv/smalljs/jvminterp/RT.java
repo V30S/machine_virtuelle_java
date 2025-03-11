@@ -159,8 +159,15 @@ public final class RT {
             mh = mh.withVarargs(varargs);
             mh = mh.asType(type());
 
+            // insert in front
+            // var test = MethodHandles.insertArguments(TEST, 1, qualifier);
+            // var guard = MethodHandles.guardWithTest(test, mh, getTarget());
+            // setTarget(guard);
+
+            // insert after
             var test = MethodHandles.insertArguments(TEST, 1, qualifier);
-            var guard = MethodHandles.guardWithTest(test, mh, getTarget());
+            var fallback = new InliningCache(type()).dynamicInvoker();
+            var guard = guardWithTest(test, mh, fallback);
             setTarget(guard);
 
             return mh;
